@@ -3,7 +3,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:haptic_kit/haptic_kit.dart';
 
-void main() => runApp(const VibrationDemoApp());
+import 'haptic_indicator.dart';
+import 'showcase.dart';
+
+/// Opens straight into the auto-playing showcase, used to record the
+/// README GIFs: `flutter run --dart-define=HAPTIC_KIT_SHOWCASE=true`.
+const bool _kStartInShowcase = bool.fromEnvironment('HAPTIC_KIT_SHOWCASE');
+
+void main() {
+  HapticEventLog.install();
+  runApp(const VibrationDemoApp());
+}
 
 class VibrationDemoApp extends StatelessWidget {
   const VibrationDemoApp({super.key});
@@ -18,7 +28,8 @@ class VibrationDemoApp extends StatelessWidget {
         colorSchemeSeed: Colors.indigo,
         brightness: Brightness.dark,
       ),
-      home: const VibrationDemoPage(),
+      home:
+          _kStartInShowcase ? const ShowcasePage() : const VibrationDemoPage(),
     );
   }
 }
@@ -32,35 +43,57 @@ class VibrationDemoPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('haptic_kit'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            tooltip: 'Auto-playing showcase',
+            icon: const Icon(Icons.play_circle_outline),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const ShowcasePage(loop: true),
+              ),
+            ),
+          ),
+        ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-        children: const [
-          _TypewriterDemo(),
-          SizedBox(height: 32),
-          _HeartbeatDemo(),
-          SizedBox(height: 32),
-          _LoadingRampDemo(),
-          SizedBox(height: 32),
-          _BouncyPressDemo(),
-          SizedBox(height: 32),
-          _UnboxingDemo(),
-          SizedBox(height: 32),
-          _ToggleDemo(),
-          SizedBox(height: 32),
-          _SliderDemo(),
-          SizedBox(height: 32),
-          _StepperDemo(),
-          SizedBox(height: 32),
-          _ShakeDemo(),
-          SizedBox(height: 32),
-          _SlideToConfirmDemo(),
-          SizedBox(height: 32),
-          _RatingDemo(),
-          SizedBox(height: 40),
-          Divider(),
-          SizedBox(height: 16),
-          _RawApiSection(),
+      body: Stack(
+        children: [
+          ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            children: const [
+              _TypewriterDemo(),
+              SizedBox(height: 32),
+              _HeartbeatDemo(),
+              SizedBox(height: 32),
+              _LoadingRampDemo(),
+              SizedBox(height: 32),
+              _BouncyPressDemo(),
+              SizedBox(height: 32),
+              _UnboxingDemo(),
+              SizedBox(height: 32),
+              _ToggleDemo(),
+              SizedBox(height: 32),
+              _SliderDemo(),
+              SizedBox(height: 32),
+              _StepperDemo(),
+              SizedBox(height: 32),
+              _ShakeDemo(),
+              SizedBox(height: 32),
+              _SlideToConfirmDemo(),
+              SizedBox(height: 32),
+              _RatingDemo(),
+              SizedBox(height: 40),
+              Divider(),
+              SizedBox(height: 16),
+              _RawApiSection(),
+              SizedBox(height: 72),
+            ],
+          ),
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 24,
+            child: Center(child: HapticIndicator()),
+          ),
         ],
       ),
     );
@@ -824,6 +857,33 @@ class _RawApiSectionState extends State<_RawApiSection> {
           ],
         ),
         _ChipRow(
+          label: 'Semantic (platform-native UI signals)',
+          children: [
+            for (final t in SemanticHaptic.values)
+              ActionChip(
+                label: Text(t.name),
+                onPressed: () => Haptics.semantic(t),
+              ),
+          ],
+        ),
+        _ChipRow(
+          label: 'Composition primitives',
+          children: [
+            for (final p in HapticPrimitive.values)
+              ActionChip(
+                label: Text(p.name),
+                onPressed: () => HapticComposition.builder().add(p).play(),
+              ),
+            ActionChip(
+              label: const Text('rise + click'),
+              onPressed: () => HapticComposition.builder()
+                  .add(HapticPrimitive.slowRise, scale: 0.6)
+                  .add(HapticPrimitive.click)
+                  .play(),
+            ),
+          ],
+        ),
+        _ChipRow(
           label: 'Predefined',
           children: [
             for (final e in PredefinedEffect.values)
@@ -957,6 +1017,10 @@ class _CapabilitiesCard extends StatelessWidget {
           _row('Custom patterns', caps.supportsCustomPatterns),
           _row('Predefined effects', caps.supportsPredefinedEffects),
           _row('Impact feedback', caps.supportsImpactFeedback),
+          _row(
+            'Native primitives: ${caps.supportedPrimitives.isEmpty ? 'none (approximated)' : caps.supportedPrimitives.map((p) => p.name).join(', ')}',
+            caps.supportedPrimitives.isNotEmpty,
+          ),
         ],
       ),
     );

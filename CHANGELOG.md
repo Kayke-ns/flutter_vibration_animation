@@ -1,4 +1,26 @@
-## 2.2.1
+## 2.3.0
+
+### Added
+- `Haptics.semantic(SemanticHaptic)`: name the UI event (`confirm`,
+  `reject`, `toggleOn`, `toggleOff`, `gestureStart`, `gestureEnd`,
+  `gestureThresholdActivate`, `gestureThresholdDeactivate`, `dragStart`,
+  `segmentTick`, `segmentFrequentTick`, `longPress`) and play each
+  platform's native signal for it. Android uses `View.performHapticFeedback`,
+  which respects the user's touch-feedback setting, with the API 30 and
+  API 34 `HapticFeedbackConstants` where available and the closest older
+  constant below that. iOS maps each value to the closest
+  `UIFeedbackGenerator`.
+- `HapticComposition` and `HapticPrimitive`: Android 11+ composition
+  primitives (`click`, `tick`, `lowTick`, `quickRise`, `slowRise`,
+  `quickFall`, `thud`, `spin`) with per-primitive scale and delay. Played
+  natively when the vibrator supports every primitive in the composition,
+  otherwise approximated as a whole with intensity and sharpness events
+  (Core Haptics on iOS, a waveform on Android).
+- `HapticCapabilities.supportedPrimitives`: the primitives the vibrator
+  renders natively. Optional constructor parameter, defaults to empty.
+- Example app: a "haptic fired: ..." indicator for every haptic sent to the
+  platform, and an auto-playing showcase of all widgets. README GIFs are
+  recorded from it.
 
 ### Fixed
 - Animated widgets no longer raise an uncaught async error on every tap when
@@ -17,7 +39,13 @@
 - Documented every public constructor and field, including `HapticBounce`,
   `HapticPulse`, `HapticCapabilities`, `HapticEvent` and `HapticEvent.toMap`.
 - Synced the podspec version with the package version and updated the
-  README install snippet to `^2.2.1`.
+  README install snippet to `^2.3.0`.
+- Example app: fixed the iOS Swift Package Manager setup. The Xcode project
+  still pointed at the old `ios/haptic_kit` package and duplicated the one
+  Flutter generates, so `flutter build ios` failed. It also opts in to SPM in
+  its own pubspec, since it has no Podfile.
+- Declared the analyzer excludes Flutter's analysis-options migration adds,
+  so `flutter pub get` no longer leaves the tree dirty.
 
 ## 2.2.0
 
