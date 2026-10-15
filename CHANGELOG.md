@@ -1,8 +1,8 @@
 ## 2.3.0
 
 Fully backward compatible: every change is additive or a bug fix. No
-existing signature, return type or class member changed, and no new
-required parameter was added.
+existing signature, return type or class member changed, no new required
+parameter was added, and no existing call path throws anything new.
 
 ### Added
 - `Haptics.semantic(SemanticHaptic)`: name the UI event (`confirm`,
@@ -34,15 +34,11 @@ required parameter was added.
   unmocked channel in widget tests) is now absorbed and the widget keeps
   animating and calling its callbacks. Direct `Haptics`, `Vibration` and
   `HapticPattern` calls still throw as before.
-- `Vibration.vibrateWaveform` now rejects negative timings with an
-  `InvalidVibrationArgumentException` on every platform. This is not a new
-  failure mode for cross-platform callers: on Android (API 26+, with a
-  vibrator) the same input already threw this exact exception, mapped from
-  the native `IllegalArgumentException`, so code calling it on both
-  platforms already had to handle it. iOS silently played a wrong pattern
-  instead (every later event pulled earlier, down to a negative start
-  time) and now matches Android. Like the method's other argument checks,
-  it runs before the call reaches the platform.
+- iOS only: `Vibration.vibrateWaveform` with a negative timing no longer
+  pulls every later event earlier, down to a negative start time. The iOS
+  waveform now treats negative timings as 0. No new exceptions: the Dart
+  call does not validate negative timings, so behavior on Android is
+  exactly as in 2.2.0.
 - Shortened the pubspec description to fit pub.dev's 60-180 character limit.
 
 ### Changed
