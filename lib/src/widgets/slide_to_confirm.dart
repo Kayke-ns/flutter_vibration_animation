@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../haptic_feedback.dart';
+import 'widget_haptics.dart';
 
 /// Pill-shaped track with a draggable handle. The user must drag the
 /// handle from left edge to right edge to confirm.
@@ -20,6 +21,8 @@ import '../haptic_feedback.dart';
 /// )
 /// ```
 class SlideToConfirm extends StatefulWidget {
+  /// Creates a slide-to-confirm track that calls [onConfirmed] once the
+  /// handle reaches the end.
   const SlideToConfirm({
     super.key,
     required this.onConfirmed,
@@ -32,13 +35,31 @@ class SlideToConfirm extends StatefulWidget {
     this.textColor,
   });
 
+  /// Called once when the handle is released at the end of the track. Use
+  /// [SlideToConfirmState.reset] to allow another confirmation.
   final VoidCallback onConfirmed;
+
+  /// Text shown in the track, fading out as the handle moves.
+  /// Defaults to `'Slide to confirm'`.
   final String label;
+
+  /// Height of the track in logical pixels. Defaults to `64`.
   final double height;
+
+  /// Icon on the handle before confirmation. Defaults to
+  /// [Icons.arrow_forward].
   final IconData handleIcon;
+
+  /// Icon on the handle after confirmation. Defaults to [Icons.check].
   final IconData confirmedIcon;
+
+  /// Track colour. Defaults to the theme's primary colour at 20% opacity.
   final Color? trackColor;
+
+  /// Handle colour. Defaults to the theme's primary colour.
   final Color? handleColor;
+
+  /// Label colour. Defaults to the theme's `onSurface` colour.
   final Color? textColor;
 
   @override
@@ -87,7 +108,7 @@ class SlideToConfirmState extends State<SlideToConfirm>
     final v = _controller.value;
     for (final t in _tickThresholds) {
       if (v >= t && _firedTicks.add(t)) {
-        Haptics.impact(HapticImpactStyle.light);
+        playWidgetHaptic(Haptics.impact(HapticImpactStyle.light));
       }
     }
   }
@@ -109,11 +130,11 @@ class SlideToConfirmState extends State<SlideToConfirm>
     if (_controller.value >= 0.98) {
       _controller.value = 1.0;
       _confirmed = true;
-      Haptics.impact(HapticImpactStyle.heavy);
+      playWidgetHaptic(Haptics.impact(HapticImpactStyle.heavy));
       widget.onConfirmed();
       setState(() {});
     } else {
-      Haptics.impact(HapticImpactStyle.light);
+      playWidgetHaptic(Haptics.impact(HapticImpactStyle.light));
       _controller.animateBack(
         0,
         duration: const Duration(milliseconds: 280),

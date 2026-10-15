@@ -9,6 +9,16 @@ custom Core Haptics patterns with intensity and sharpness curves, plus a
 set of production-ready widgets wired to the right haptic at the right
 moment.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/erykkruk/flutter_vibration_animation/main/doc/media/press_and_hold.gif" width="240" alt="PressAndHoldToConfirm progress ring filling while held" />
+  <img src="https://raw.githubusercontent.com/erykkruk/flutter_vibration_animation/main/doc/media/bounce.gif" width="240" alt="HapticBounce squashing and bouncing back on tap" />
+  <img src="https://raw.githubusercontent.com/erykkruk/flutter_vibration_animation/main/doc/media/semantic_composition.gif" width="240" alt="Buttons playing semantic haptics and compositions" />
+</p>
+
+Haptics don't show up on video, so the clips show a "haptic fired: ..." pill
+each time one plays. They are recorded from the example app's auto-playing
+showcase on the iOS simulator.
+
 > Previously developed under the names `flutter_vibration_animation` and
 > `flutter_haptics`. The repository URL is unchanged — only the package
 > name and class identifiers were updated for consistency with the actual
@@ -37,6 +47,15 @@ Full hosted documentation lives on the Codigee open-source site:
   - Selection (for pickers, sliders, segmented controls)
   - `prepare()` to pre-warm generators on iOS for lowest latency
     (returns `true` on iOS, `false` no-op on Android)
+- **`Haptics.semantic`** - name the UI event instead of a strength
+  (`confirm`, `reject`, `toggleOn`, `toggleOff`, `dragStart`,
+  `gestureThresholdActivate`, `segmentTick`, ...) and get each platform's
+  native signal for it. On Android this is `View.performHapticFeedback`,
+  which respects the user's touch-feedback setting
+- **`HapticComposition`** - Android 11+ composition primitives (`click`,
+  `tick`, `lowTick`, `quickRise`, `slowRise`, `quickFall`, `thud`, `spin`)
+  with per-primitive scale and delay, approximated with Core Haptics on iOS
+  and a waveform on older Android
 - **`Vibration`** — longer-form vibrations
   - One-shot vibration with optional amplitude
   - Custom waveforms with per-segment amplitudes
@@ -65,13 +84,15 @@ Full hosted documentation lives on the Codigee open-source site:
 | Custom waveforms | ✅ API 26+ | ✅ iPhone 8+ |
 | Predefined effects | ✅ API 29+ | ↩︎ mapped to closest impact |
 | Custom patterns (intensity + sharpness) | ✅ API 26+ | ✅ iPhone 8+ |
+| Semantic UI signals (`Haptics.semantic`) | ✅ API 21+, newest constants on 30+ / 34+ | ✅ mapped to UIKit generators |
+| Composition primitives | ✅ native on API 30+ (some 31+), approximated below | approximated with Core Haptics |
 | Capability detection | ✅ | ✅ |
 
 ## Installation
 
 ```yaml
 dependencies:
-  haptic_kit: ^1.0.0
+  haptic_kit: ^2.3.0
 ```
 
 ### Android
@@ -138,11 +159,113 @@ await HapticPattern.builder()
 * On older devices, `play()` throws `UnsupportedHapticException` — guard
   with `HapticCapabilities.query()` if you need graceful degradation.
 
+## Semantic haptics
+
+Name what happened in the UI and let each platform pick its own signal:
+
+```dart
+// A plain Switch (HapticToggle already ticks on its own)
+Switch(
+  value: _enabled,
+  onChanged: (on) {
+    Haptics.semantic(on ? SemanticHaptic.toggleOn : SemanticHaptic.toggleOff);
+    setState(() => _enabled = on);
+  },
+)
+
+// Swipe-to-delete crossing its threshold
+Haptics.semantic(SemanticHaptic.gestureThresholdActivate);
+```
+
+* On **Android** the call goes through `View.performHapticFeedback`, the
+  path Google recommends for UI feedback: it follows the user's system
+  touch-feedback setting (nothing plays when they turned it off) and the
+  device maker's tuning. Newer `HapticFeedbackConstants` are used where the
+  OS has them (`CONFIRM`, `REJECT`, `GESTURE_START` / `GESTURE_END` on API
+  30+, `TOGGLE_ON` / `TOGGLE_OFF`, `DRAG_START`, `SEGMENT_TICK`,
+  `GESTURE_THRESHOLD_*` on API 34+), with the closest older constant below
+  that. Without an attached activity it falls back to a predefined
+  vibration.
+* On **iOS** each value maps to the closest `UIFeedbackGenerator`; the
+  mapping is listed on every `SemanticHaptic` value.
+
+## Composition primitives
+
+<img src="https://raw.githubusercontent.com/erykkruk/flutter_vibration_animation/main/doc/media/semantic_composition.gif" width="260" alt="Buttons playing semantic haptics and compositions" />
+
+```dart
+await HapticComposition.builder()
+    .add(HapticPrimitive.slowRise, scale: 0.6)
+    .add(HapticPrimitive.click, delay: const Duration(milliseconds: 40))
+    .play();
+
+final native = await HapticComposition.supportedPrimitives();
+if (native.contains(HapticPrimitive.thud)) {
+  // Rendered natively by the vibrator.
+}
+```
+
+* On **Android 11+** (API 30, with `lowTick`, `thud` and `spin` on API 31)
+  the composition is a `VibrationEffect.Composition`, played only when
+  `Vibrator.areAllPrimitivesSupported` says the vibrator has every primitive
+  in it.
+* Everywhere else (iOS, older Android, or a vibrator missing a primitive)
+  the **whole** composition is approximated with intensity + sharpness
+  events, through Core Haptics on iOS and a waveform on Android. It is never
+  played half native, half approximated.
+* `play()` works on every device; `HapticComposition.supportedPrimitives()`
+  tells you which primitives would feel native.
+
 ## Animated widgets
 
 The library ships with a set of drop-in widgets that combine an animation
 with the right haptic at the right moment. Each one is a single
 self-contained file in `lib/src/widgets/` — read one, copy the pattern.
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://raw.githubusercontent.com/erykkruk/flutter_vibration_animation/main/doc/media/bounce.gif" width="220" alt="HapticBounce squashing and bouncing back on tap" /><br />
+      <sub><code>HapticBounce</code></sub>
+    </td>
+    <td align="center">
+      <img src="https://raw.githubusercontent.com/erykkruk/flutter_vibration_animation/main/doc/media/press_and_hold.gif" width="220" alt="PressAndHoldToConfirm progress ring filling while held" /><br />
+      <sub><code>PressAndHoldToConfirm</code></sub>
+    </td>
+    <td align="center">
+      <img src="https://raw.githubusercontent.com/erykkruk/flutter_vibration_animation/main/doc/media/toggle.gif" width="220" alt="HapticToggle flipping on and off" /><br />
+      <sub><code>HapticToggle</code></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://raw.githubusercontent.com/erykkruk/flutter_vibration_animation/main/doc/media/slider.gif" width="220" alt="HapticSlider ticking at each detent" /><br />
+      <sub><code>HapticSlider</code></sub>
+    </td>
+    <td align="center">
+      <img src="https://raw.githubusercontent.com/erykkruk/flutter_vibration_animation/main/doc/media/stepper.gif" width="220" alt="HapticStepper counting up to its limit" /><br />
+      <sub><code>HapticStepper</code></sub>
+    </td>
+    <td align="center">
+      <img src="https://raw.githubusercontent.com/erykkruk/flutter_vibration_animation/main/doc/media/shake.gif" width="220" alt="HapticShake wiggling a wrong PIN" /><br />
+      <sub><code>HapticShake</code></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://raw.githubusercontent.com/erykkruk/flutter_vibration_animation/main/doc/media/pulse.gif" width="220" alt="HapticPulse breathing on a notification bell" /><br />
+      <sub><code>HapticPulse</code></sub>
+    </td>
+    <td align="center">
+      <img src="https://raw.githubusercontent.com/erykkruk/flutter_vibration_animation/main/doc/media/slide_to_confirm.gif" width="220" alt="SlideToConfirm dragged to the end" /><br />
+      <sub><code>SlideToConfirm</code></sub>
+    </td>
+    <td align="center">
+      <img src="https://raw.githubusercontent.com/erykkruk/flutter_vibration_animation/main/doc/media/rating.gif" width="220" alt="HapticRating stars filling one by one" /><br />
+      <sub><code>HapticRating</code></sub>
+    </td>
+  </tr>
+</table>
 
 | Widget | What it does | Pattern |
 |--------|--------------|---------|
@@ -427,10 +550,23 @@ All public APIs throw subclasses of `VibrationException`:
 | `UnsupportedHapticException` | The device cannot render the requested capability |
 | `PlatformVibrationException` | The native side returned an error or the plugin is not registered |
 
+The animated widgets are the exception: their haptics are decorative, so they
+fire them in the background and absorb any `VibrationException`. On a device
+or platform that cannot play haptics (web, desktop, no vibrator) the widgets
+still animate and call their callbacks, just without the buzz, instead of
+raising an uncaught async error on every tap.
+
 ## Example app
 
 A runnable demo lives in [`example/`](example/) — buttons for every kind of
 feedback, side by side.
+
+Haptics are invisible on video, so the example shows a small
+"haptic fired: ..." pill every time any haptic reaches the platform,
+including the ones the widgets fire internally. The play button in the app
+bar opens an auto-playing showcase that drives every widget with a
+scripted finger; the GIFs above are recorded from it
+(`flutter run --dart-define=HAPTIC_KIT_SHOWCASE=true`).
 
 ## License
 

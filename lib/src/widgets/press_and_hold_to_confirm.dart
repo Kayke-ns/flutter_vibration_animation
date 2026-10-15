@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../haptic_feedback.dart';
+import 'widget_haptics.dart';
 
 /// Long-press confirmation widget — the user must hold their finger on
 /// [child] for [holdDuration] to trigger [onConfirm].
@@ -32,6 +33,8 @@ import '../haptic_feedback.dart';
 /// finger position is available, and a single-pointer guard rejects
 /// secondary touches that would otherwise restart the animation.
 class PressAndHoldToConfirm extends StatefulWidget {
+  /// Creates a press-and-hold area around [child] that calls [onConfirm]
+  /// after [holdDuration].
   const PressAndHoldToConfirm({
     super.key,
     required this.child,
@@ -142,13 +145,13 @@ class PressAndHoldToConfirmState extends State<PressAndHoldToConfirm>
 
   void _fireHapticAt(double progress) {
     if (progress < 0.35) {
-      Haptics.selection();
+      playWidgetHaptic(Haptics.selection());
     } else if (progress < 0.80) {
-      Haptics.impact(HapticImpactStyle.light);
+      playWidgetHaptic(Haptics.impact(HapticImpactStyle.light));
     } else if (progress < 0.95) {
-      Haptics.impact(HapticImpactStyle.medium);
+      playWidgetHaptic(Haptics.impact(HapticImpactStyle.medium));
     } else {
-      Haptics.impact(HapticImpactStyle.heavy);
+      playWidgetHaptic(Haptics.impact(HapticImpactStyle.heavy));
     }
   }
 
@@ -157,7 +160,7 @@ class PressAndHoldToConfirmState extends State<PressAndHoldToConfirm>
       _completed = true;
       // Final "lock-in" tap — without this the last in-list tick (at 0.97)
       // would be the closing feeling and completion would land softly.
-      Haptics.impact(HapticImpactStyle.heavy);
+      playWidgetHaptic(Haptics.impact(HapticImpactStyle.heavy));
       widget.onConfirm();
     }
   }

@@ -3,10 +3,13 @@
 ///
 /// ## Primitives
 ///
-/// * [Haptics] — short, semantic taps (impact, notification, selection).
+/// * [Haptics] - short, semantic taps (impact, notification, selection,
+///   and [SemanticHaptic] platform-native UI signals).
 /// * [Vibration] — longer vibrations, custom waveforms, predefined effects.
 /// * [HapticPattern] — fluent builder for custom event sequences
 ///   (Core Haptics on iOS, waveform on Android).
+/// * [HapticComposition] - Android 11+ composition primitives
+///   ([HapticPrimitive]), approximated on other devices.
 /// * [VibrationPatterns] — ready-made patterns (heartbeat, alarm, …).
 /// * [HapticCapabilities] — runtime capability detection.
 ///
@@ -26,10 +29,12 @@ library;
 
 export 'src/exceptions.dart';
 export 'src/haptic_capabilities.dart';
+export 'src/haptic_composition.dart';
 export 'src/haptic_feedback.dart';
 export 'src/haptic_pattern.dart';
 export 'src/haptic_settings.dart';
 export 'src/predefined_effect.dart';
+export 'src/semantic_haptic.dart';
 export 'src/vibration.dart';
 export 'src/vibration_patterns.dart';
 export 'src/widgets/haptic_bounce.dart';

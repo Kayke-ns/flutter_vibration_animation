@@ -61,11 +61,15 @@ internal final class CoreHapticsHandler {
 
     func waveform(timingsMs: [Int], amplitudes: [Int]?, repeatIndex: Int, fallback: HapticFeedbackHandler) {
         guard !timingsMs.isEmpty else { return }
+        // A negative timing would move the cursor backwards and pull every
+        // later event earlier, down to a negative start time. Treat it as 0
+        // instead of throwing, so no new error reaches existing callers.
+        let clampedMs = timingsMs.map { max($0, 0) }
 
         guard supportsHaptics else {
             // Approximate the waveform with a single system vibration if the
             // total active time is meaningful, otherwise a notification tap.
-            let activeMs = zip(timingsMs.indices, timingsMs).reduce(0) { acc, pair in
+            let activeMs = zip(clampedMs.indices, clampedMs).reduce(0) { acc, pair in
                 let (i, ms) = pair
                 let isActive = (amplitudes?[i] ?? (i % 2 == 1 ? 255 : 0)) > 0
                 return acc + (isActive ? ms : 0)
@@ -81,7 +85,7 @@ internal final class CoreHapticsHandler {
         if #available(iOS 13.0, *) {
             var events: [CHHapticEvent] = []
             var cursorMs = 0
-            for (i, ms) in timingsMs.enumerated() {
+            for (i, ms) in clampedMs.enumerated() {
                 let amp = amplitudes?[i] ?? (i % 2 == 1 ? 255 : 0)
                 if amp > 0 && ms > 0 {
                     let intensity = Float(amp) / 255.0
@@ -163,6 +167,9 @@ internal final class CoreHapticsHandler {
             "supportsCustomPatterns": supportsHaptics,
             "supportsPredefinedEffects": false,
             "supportsImpactFeedback": true,
+            // Composition primitives are an Android API; iOS approximates
+            // them with Core Haptics events instead.
+            "supportedPrimitives": [String](),
         ]
     }
 

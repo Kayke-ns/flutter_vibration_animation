@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../haptic_feedback.dart';
+import 'widget_haptics.dart';
 
 /// Wraps a child with an externally-triggered horizontal "wiggle" animation
 /// + error notification haptic. The classic "wrong password" shake.
@@ -20,6 +21,8 @@ import '../haptic_feedback.dart';
 /// horizontal translations, ending at zero — feels natural and stops
 /// without a visible snap.
 class HapticShake extends StatefulWidget {
+  /// Creates a shake wrapper around [child]. Trigger it with
+  /// [HapticShakeState.shake].
   const HapticShake({
     super.key,
     required this.child,
@@ -28,6 +31,7 @@ class HapticShake extends StatefulWidget {
     this.haptics = true,
   });
 
+  /// The widget to shake.
   final Widget child;
 
   /// Maximum horizontal displacement in logical pixels. Subsequent swings
@@ -95,7 +99,7 @@ class HapticShakeState extends State<HapticShake>
   /// restarts from the beginning.
   Future<void> shake() async {
     if (widget.haptics) {
-      Haptics.notification(HapticNotificationStyle.error);
+      playWidgetHaptic(Haptics.notification(HapticNotificationStyle.error));
     }
     await _controller.forward(from: 0);
   }

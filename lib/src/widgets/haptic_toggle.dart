@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../haptic_feedback.dart';
+import 'widget_haptics.dart';
 
 /// Animated switch with a haptic tick on toggle.
 ///
@@ -15,6 +16,7 @@ import '../haptic_feedback.dart';
 /// )
 /// ```
 class HapticToggle extends StatefulWidget {
+  /// Creates a toggle showing [value]. Pass a null [onChanged] to disable it.
   const HapticToggle({
     super.key,
     required this.value,
@@ -27,13 +29,29 @@ class HapticToggle extends StatefulWidget {
     this.duration = const Duration(milliseconds: 220),
   });
 
+  /// Whether the toggle is on.
   final bool value;
+
+  /// Called with the flipped value on tap. When null the toggle is disabled
+  /// and ignores taps.
   final ValueChanged<bool>? onChanged;
+
+  /// Track colour when on. Defaults to the theme's primary colour.
   final Color? activeColor;
+
+  /// Track colour when off. Defaults to a dark grey.
   final Color inactiveColor;
+
+  /// Colour of the sliding thumb. Defaults to [Colors.white].
   final Color thumbColor;
+
+  /// Width of the track in logical pixels. Defaults to `56`.
   final double width;
+
+  /// Height of the track in logical pixels. Defaults to `32`.
   final double height;
+
+  /// Duration of the thumb animation. Defaults to `220 ms`.
   final Duration duration;
 
   @override
@@ -76,7 +94,7 @@ class _HapticToggleState extends State<HapticToggle>
 
   void _toggle() {
     if (widget.onChanged == null) return;
-    Haptics.selection();
+    playWidgetHaptic(Haptics.selection());
     widget.onChanged!(!widget.value);
   }
 

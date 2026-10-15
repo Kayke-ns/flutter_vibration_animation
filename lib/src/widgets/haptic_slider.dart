@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../haptic_feedback.dart';
+import 'widget_haptics.dart';
 
 /// Slider that fires a haptic tick whenever the value crosses a discrete
 /// detent — like the iOS picker wheel.
@@ -19,6 +20,9 @@ import '../haptic_feedback.dart';
 /// )
 /// ```
 class HapticSlider extends StatefulWidget {
+  /// Creates a slider showing [value] within `[min, max]`.
+  ///
+  /// [divisions] and [tickEvery], when set, must be greater than zero.
   const HapticSlider({
     super.key,
     required this.value,
@@ -40,9 +44,16 @@ class HapticSlider extends StatefulWidget {
           'tickEvery must be > 0',
         );
 
+  /// Current value. Must be within `[min, max]`.
   final double value;
+
+  /// Called with the new value while the user drags the thumb.
   final ValueChanged<double> onChanged;
+
+  /// Lowest selectable value. Defaults to `0.0`.
   final double min;
+
+  /// Highest selectable value. Defaults to `1.0`.
   final double max;
 
   /// Discrete divisions. Mutually exclusive with [tickEvery] in semantics
@@ -52,7 +63,11 @@ class HapticSlider extends StatefulWidget {
   /// Distance between ticks in value units (used when [divisions] is null).
   final double? tickEvery;
 
+  /// Value-indicator label, passed through to [Slider.label].
   final String? label;
+
+  /// Colour of the active track and thumb. Defaults to the theme's slider
+  /// colour.
   final Color? activeColor;
 
   /// Haptic style for intermediate ticks.
@@ -86,7 +101,9 @@ class _HapticSliderState extends State<HapticSlider> {
     if (detent != -1 && detent != _lastDetent) {
       _lastDetent = detent;
       final atEdge = v == widget.min || v == widget.max;
-      Haptics.impact(atEdge ? widget.endTickStyle : widget.tickStyle);
+      playWidgetHaptic(
+        Haptics.impact(atEdge ? widget.endTickStyle : widget.tickStyle),
+      );
     }
     widget.onChanged(v);
   }

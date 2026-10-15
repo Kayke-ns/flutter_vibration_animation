@@ -5,6 +5,11 @@ import 'method_channel.dart';
 /// Use [HapticCapabilities.query] once on app start (or on the first user
 /// interaction) and cache the result — values do not change at runtime.
 class HapticCapabilities {
+  /// Creates a capabilities snapshot.
+  ///
+  /// Apps normally read one through [HapticCapabilities.query] or
+  /// `HapticSettings.capabilities`; constructing one directly is mainly
+  /// useful for tests and previews.
   const HapticCapabilities({
     required this.hasVibrator,
     required this.hasAmplitudeControl,

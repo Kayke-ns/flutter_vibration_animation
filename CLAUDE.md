@@ -88,12 +88,14 @@ haptic_kit/
 | `haptic.impact` | `style` | UIImpact / Android predefined |
 | `haptic.notification` | `style` | UINotification / Android waveform |
 | `haptic.selection` | — | UISelection / Android tick |
+| `haptic.semantic` | `type` | `View.performHapticFeedback` (API-tiered constants) / closest UIFeedbackGenerator |
 | `haptic.prepare` | — | iOS prewarm (no-op on Android) |
 | `vibration.oneShot` | `durationMs`, `amplitude?` | Single vibration |
 | `vibration.waveform` | `timingsMs`, `amplitudes?`, `repeat` | Custom waveform |
 | `vibration.predefined` | `effect` | EFFECT_TICK / CLICK / DOUBLE_CLICK / HEAVY_CLICK |
 | `vibration.cancel` | — | Stop any running vibration |
 | `pattern.play` | `events` | Core Haptics events with intensity + sharpness |
+| `composition.play` | `primitives`, `fallbackEvents` | Android 11+ Composition, else `fallbackEvents` via pattern path (always on iOS) |
 | `capabilities.query` | — | Returns capabilities map |
 
 ## Naming Conventions

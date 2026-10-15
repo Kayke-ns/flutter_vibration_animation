@@ -20,3 +20,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # The example's Xcode project is SPM-only (no Podfile), so opt in here
+  # rather than relying on the developer's global Flutter setting.
+  config:
+    enable-swift-package-manager: true

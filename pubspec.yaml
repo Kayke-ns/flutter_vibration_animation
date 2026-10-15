@@ -1,14 +1,20 @@
 name: haptic_kit
 description: >-
-  Haptic feedback, vibration and animated UI widgets for Flutter — Android &
-  iOS. Impact, notification, selection, predefined effects, custom waveforms,
-  Core Haptics patterns plus 8 production-ready widgets.
-version: 2.2.0
+  Haptic feedback, vibration and animated haptic widgets for Flutter on Android
+  and iOS: impact, notification, selection, custom waveforms and Core Haptics
+  patterns.
+version: 2.3.0
 
 homepage: https://github.com/erykkruk/flutter_vibration_animation
 repository: https://github.com/erykkruk/flutter_vibration_animation
 issue_tracker: https://github.com/erykkruk/flutter_vibration_animation/issues
 documentation: https://codigee.com/open-source/haptic-kit
+
+screenshots:
+  - description: PressAndHoldToConfirm with escalating haptic ticks.
+    path: doc/media/press_and_hold.gif
+  - description: Semantic haptics and composition primitives.
+    path: doc/media/semantic_composition.gif
 
 topics:
   - haptics

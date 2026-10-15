@@ -1,4 +1,5 @@
 import 'method_channel.dart';
+import 'semantic_haptic.dart';
 
 /// Style of an impact tap.
 ///
@@ -78,6 +79,27 @@ class Haptics {
   /// values (pickers, sliders, segmented controls).
   static Future<void> selection() =>
       HapticKitChannel.invoke<void>('haptic.selection');
+
+  /// Play the platform's native haptic for a UI event, named by its
+  /// meaning rather than its strength.
+  ///
+  /// On Android this goes through `View.performHapticFeedback`, which
+  /// follows the user's system touch-feedback setting: when they turned it
+  /// off, nothing plays. Newer `HapticFeedbackConstants` are used on the OS
+  /// versions that have them, with the closest older constant elsewhere. If
+  /// no activity is attached (for example a background engine), the call
+  /// falls back to the matching predefined vibration. On iOS the closest
+  /// `UIFeedbackGenerator` plays. See [SemanticHaptic] for the mapping.
+  ///
+  /// ```dart
+  /// onChanged: (on) {
+  ///   Haptics.semantic(on ? SemanticHaptic.toggleOn : SemanticHaptic.toggleOff);
+  /// }
+  /// ```
+  static Future<void> semantic(SemanticHaptic type) =>
+      HapticKitChannel.invoke<void>('haptic.semantic', {
+        'type': type.name,
+      });
 
   /// Pre-warm haptic generators so the next call has the lowest possible
   /// latency. Optional — calling [impact] / [notification] / [selection]

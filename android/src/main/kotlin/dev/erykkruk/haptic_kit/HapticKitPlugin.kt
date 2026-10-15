@@ -1,11 +1,15 @@
 package dev.erykkruk.haptic_kit
 
+import android.app.Activity
 import android.content.Context
+import android.view.View
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
-class HapticKitPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
+class HapticKitPlugin : FlutterPlugin, ActivityAware, MethodChannel.MethodCallHandler {
 
     private companion object {
         const val CHANNEL_NAME = "dev.erykkruk/haptic_kit"
@@ -15,6 +19,12 @@ class HapticKitPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     private lateinit var context: Context
     private lateinit var vibrationManager: VibrationManager
     private lateinit var hapticHandler: HapticFeedbackHandler
+
+    // performHapticFeedback needs a view; the activity's decor view is the
+    // one view a plugin can always reach while the app is in the foreground.
+    private var activity: Activity? = null
+    private val feedbackView: View?
+        get() = activity?.window?.decorView
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         context = binding.applicationContext
@@ -27,6 +37,22 @@ class HapticKitPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
         vibrationManager.cancel()
+    }
+
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        activity = binding.activity
+    }
+
+    override fun onDetachedFromActivityForConfigChanges() {
+        activity = null
+    }
+
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        activity = binding.activity
+    }
+
+    override fun onDetachedFromActivity() {
+        activity = null
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -46,6 +72,12 @@ class HapticKitPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 }
                 "haptic.selection" -> {
                     hapticHandler.selection()
+                    result.success(null)
+                }
+                "haptic.semantic" -> {
+                    val type = call.argument<String>("type")
+                        ?: return result.error("invalid_argument", "type missing", null)
+                    hapticHandler.semantic(type, feedbackView)
                     result.success(null)
                 }
                 "haptic.prepare" -> {
@@ -87,6 +119,16 @@ class HapticKitPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                     val events = call.argument<List<Map<String, Any?>>>("events")
                         ?: return result.error("invalid_argument", "events missing", null)
                     vibrationManager.playPattern(events)
+                    result.success(null)
+                }
+                "composition.play" -> {
+                    @Suppress("UNCHECKED_CAST")
+                    val primitives = call.argument<List<Map<String, Any?>>>("primitives")
+                        ?: return result.error("invalid_argument", "primitives missing", null)
+                    @Suppress("UNCHECKED_CAST")
+                    val fallbackEvents = call.argument<List<Map<String, Any?>>>("fallbackEvents")
+                        ?: emptyList()
+                    vibrationManager.playComposition(primitives, fallbackEvents)
                     result.success(null)
                 }
                 "capabilities.query" -> {

@@ -9,3 +9,9 @@ doc/api/
 example/build/
 example/ios/Pods/
 example/.dart_tool/
+
+# README GIFs are served from raw.githubusercontent, so they stay out of the
+# package archive, except the ones listed under `screenshots:` in pubspec.
+doc/media/*
+!doc/media/press_and_hold.gif
+!doc/media/semantic_composition.gif

@@ -1,3 +1,58 @@
+## 2.3.0
+
+Fully backward compatible: every change is additive or a bug fix. No
+existing signature, return type or class member changed, no new required
+parameter was added, and no existing call path throws anything new.
+
+### Added
+- `Haptics.semantic(SemanticHaptic)`: name the UI event (`confirm`,
+  `reject`, `toggleOn`, `toggleOff`, `gestureStart`, `gestureEnd`,
+  `gestureThresholdActivate`, `gestureThresholdDeactivate`, `dragStart`,
+  `segmentTick`, `segmentFrequentTick`, `longPress`) and play each
+  platform's native signal for it. Android uses `View.performHapticFeedback`,
+  which respects the user's touch-feedback setting, with the API 30 and
+  API 34 `HapticFeedbackConstants` where available and the closest older
+  constant below that. iOS maps each value to the closest
+  `UIFeedbackGenerator`.
+- `HapticComposition` and `HapticPrimitive`: Android 11+ composition
+  primitives (`click`, `tick`, `lowTick`, `quickRise`, `slowRise`,
+  `quickFall`, `thud`, `spin`) with per-primitive scale and delay. Played
+  natively when the vibrator supports every primitive in the composition,
+  otherwise approximated as a whole with intensity and sharpness events
+  (Core Haptics on iOS, a waveform on Android).
+- `HapticComposition.supportedPrimitives()`: the primitives the vibrator
+  renders natively (Android 11+; always empty on iOS). A new static query,
+  so `HapticCapabilities` itself is unchanged.
+- Example app: a "haptic fired: ..." indicator for every haptic sent to the
+  platform, and an auto-playing showcase of all widgets. README GIFs are
+  recorded from it.
+
+### Fixed
+- Animated widgets no longer raise an uncaught async error on every tap when
+  haptics cannot play. Their haptics are decorative, so a
+  `VibrationException` (no plugin on web or desktop, a native failure, an
+  unmocked channel in widget tests) is now absorbed and the widget keeps
+  animating and calling its callbacks. Direct `Haptics`, `Vibration` and
+  `HapticPattern` calls still throw as before.
+- iOS only: `Vibration.vibrateWaveform` with a negative timing no longer
+  pulls every later event earlier, down to a negative start time. The iOS
+  waveform now treats negative timings as 0. No new exceptions: the Dart
+  call does not validate negative timings, so behavior on Android is
+  exactly as in 2.2.0.
+- Shortened the pubspec description to fit pub.dev's 60-180 character limit.
+
+### Changed
+- Documented every public constructor and field, including `HapticBounce`,
+  `HapticPulse`, `HapticCapabilities`, `HapticEvent` and `HapticEvent.toMap`.
+- Synced the podspec version with the package version and updated the
+  README install snippet to `^2.3.0`.
+- Example app: fixed the iOS Swift Package Manager setup. The Xcode project
+  still pointed at the old `ios/haptic_kit` package and duplicated the one
+  Flutter generates, so `flutter build ios` failed. It also opts in to SPM in
+  its own pubspec, since it has no Podfile.
+- Declared the analyzer excludes Flutter's analysis-options migration adds,
+  so `flutter pub get` no longer leaves the tree dirty.
+
 ## 2.2.0
 
 - Added `HapticSettings`, an app-wide switch for every haptic in the package.

@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
   s.name             = 'haptic_kit'
-  s.version          = '2.1.2'
-  s.summary          = 'Haptic feedback, vibration and animated UI widgets for Flutter — Android & iOS.'
+  s.version          = '2.3.0'
+  s.summary          = 'Haptic feedback, vibration and animated UI widgets for Flutter on Android and iOS.'
   s.description      = <<-DESC
 Haptic feedback and vibration toolkit for Flutter with full Android and iOS implementations
 plus a set of production-ready animated widgets. Supports impact / notification / selection
