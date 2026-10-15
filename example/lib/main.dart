@@ -1017,10 +1017,6 @@ class _CapabilitiesCard extends StatelessWidget {
           _row('Custom patterns', caps.supportsCustomPatterns),
           _row('Predefined effects', caps.supportsPredefinedEffects),
           _row('Impact feedback', caps.supportsImpactFeedback),
-          _row(
-            'Native primitives: ${caps.supportedPrimitives.isEmpty ? 'none (approximated)' : caps.supportedPrimitives.map((p) => p.name).join(', ')}',
-            caps.supportedPrimitives.isNotEmpty,
-          ),
         ],
       ),
     );

@@ -142,27 +142,53 @@ void main() {
     });
   });
 
-  group('HapticCapabilities.supportedPrimitives', () {
+  group('HapticComposition.supportedPrimitives', () {
     test('parses known names and ignores unknown ones', () async {
       capabilitiesReply = <String, Object?>{
         'hasVibrator': true,
         'supportedPrimitives': ['click', 'spin', 'futurePrimitive'],
       };
 
-      final caps = await HapticCapabilities.query();
+      final primitives = await HapticComposition.supportedPrimitives();
 
-      expect(caps.supportedPrimitives, {
-        HapticPrimitive.click,
-        HapticPrimitive.spin,
-      });
+      expect(primitives, {HapticPrimitive.click, HapticPrimitive.spin});
     });
 
     test('defaults to empty when the platform omits it', () async {
       capabilitiesReply = <String, Object?>{'hasVibrator': true};
 
+      final primitives = await HapticComposition.supportedPrimitives();
+
+      expect(primitives, isEmpty);
+    });
+
+    test('still queries while HapticSettings is disabled', () async {
+      HapticSettings.enabled = false;
+      capabilitiesReply = <String, Object?>{
+        'supportedPrimitives': ['tick'],
+      };
+
+      final primitives = await HapticComposition.supportedPrimitives();
+
+      expect(primitives, {HapticPrimitive.tick});
+    });
+  });
+
+  group('HapticCapabilities stays unchanged', () {
+    test('toString keeps its pre-2.3.0 format', () async {
+      capabilitiesReply = <String, Object?>{
+        'hasVibrator': true,
+        'supportedPrimitives': ['click'],
+      };
+
       final caps = await HapticCapabilities.query();
 
-      expect(caps.supportedPrimitives, isEmpty);
+      expect(
+        caps.toString(),
+        'HapticCapabilities(hasVibrator: true, hasAmplitudeControl: false, '
+        'supportsCustomPatterns: false, supportsPredefinedEffects: false, '
+        'supportsImpactFeedback: false)',
+      );
     });
   });
 }

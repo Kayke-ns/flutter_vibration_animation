@@ -199,8 +199,8 @@ await HapticComposition.builder()
     .add(HapticPrimitive.click, delay: const Duration(milliseconds: 40))
     .play();
 
-final caps = await HapticSettings.capabilities;
-if (caps.supportedPrimitives.contains(HapticPrimitive.thud)) {
+final native = await HapticComposition.supportedPrimitives();
+if (native.contains(HapticPrimitive.thud)) {
   // Rendered natively by the vibrator.
 }
 ```
@@ -213,8 +213,8 @@ if (caps.supportedPrimitives.contains(HapticPrimitive.thud)) {
   the **whole** composition is approximated with intensity + sharpness
   events, through Core Haptics on iOS and a waveform on Android. It is never
   played half native, half approximated.
-* `play()` works on every device; `HapticCapabilities.supportedPrimitives`
-  tells you which primitives would sound native.
+* `play()` works on every device; `HapticComposition.supportedPrimitives()`
+  tells you which primitives would feel native.
 
 ## Animated widgets
 

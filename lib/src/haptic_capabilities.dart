@@ -1,4 +1,3 @@
-import 'haptic_composition.dart';
 import 'method_channel.dart';
 
 /// Snapshot of what the current device can do.
@@ -17,7 +16,6 @@ class HapticCapabilities {
     required this.supportsCustomPatterns,
     required this.supportsPredefinedEffects,
     required this.supportsImpactFeedback,
-    this.supportedPrimitives = const {},
   });
 
   /// Device has any kind of vibrator hardware.
@@ -47,17 +45,6 @@ class HapticCapabilities {
   ///   path, even on devices without an amplitude-controlled vibrator.
   final bool supportsImpactFeedback;
 
-  /// [HapticPrimitive]s the vibrator renders natively.
-  ///
-  /// * Android - checked with `Vibrator.arePrimitivesSupported` on API 30+
-  ///   (some primitives need API 31). Empty on older versions.
-  /// * iOS - always empty: compositions are approximated with Core Haptics.
-  ///
-  /// [HapticComposition.play] works either way. This tells you whether a
-  /// composition will sound native or approximated, for example to pick a
-  /// different effect on devices that would only approximate it.
-  final Set<HapticPrimitive> supportedPrimitives;
-
   /// Read the current device's capabilities.
   static Future<HapticCapabilities> query() async {
     final raw = await HapticKitChannel.invoke<Map<Object?, Object?>>(
@@ -73,17 +60,7 @@ class HapticCapabilities {
       supportsPredefinedEffects:
           (map['supportsPredefinedEffects'] as bool?) ?? false,
       supportsImpactFeedback: (map['supportsImpactFeedback'] as bool?) ?? false,
-      supportedPrimitives: _parsePrimitives(map['supportedPrimitives']),
     );
-  }
-
-  static Set<HapticPrimitive> _parsePrimitives(Object? raw) {
-    if (raw is! List<Object?>) return const {};
-    final names = raw.whereType<String>().toSet();
-    return {
-      for (final primitive in HapticPrimitive.values)
-        if (names.contains(primitive.name)) primitive,
-    };
   }
 
   @override
@@ -92,6 +69,5 @@ class HapticCapabilities {
       'hasAmplitudeControl: $hasAmplitudeControl, '
       'supportsCustomPatterns: $supportsCustomPatterns, '
       'supportsPredefinedEffects: $supportsPredefinedEffects, '
-      'supportsImpactFeedback: $supportsImpactFeedback, '
-      'supportedPrimitives: ${supportedPrimitives.map((p) => p.name)})';
+      'supportsImpactFeedback: $supportsImpactFeedback)';
 }

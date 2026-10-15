@@ -142,12 +142,18 @@ internal class VibrationManager(context: Context) {
         playPattern(fallbackEvents)
     }
 
+    // Guarded so that this newer query can never make the existing
+    // capabilities.query call fail; worst case it reports no primitives.
     private fun supportedPrimitives(): List<String> {
         val v = vibrator ?: return emptyList()
         if (!hasVibrator || Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return emptyList()
         val available = PRIMITIVES.filterValues { Build.VERSION.SDK_INT >= it.minSdk }
-        val supported = v.arePrimitivesSupported(*available.values.map { it.id }.toIntArray())
-        return available.keys.filterIndexed { i, _ -> supported[i] }
+        return try {
+            val supported = v.arePrimitivesSupported(*available.values.map { it.id }.toIntArray())
+            available.keys.filterIndexed { i, _ -> supported.getOrElse(i) { false } }
+        } catch (e: RuntimeException) {
+            emptyList()
+        }
     }
 
     fun cancel() {

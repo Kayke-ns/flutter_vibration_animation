@@ -1,5 +1,9 @@
 ## 2.3.0
 
+Fully backward compatible: every change is additive or a bug fix. No
+existing signature, return type or class member changed, and no new
+required parameter was added.
+
 ### Added
 - `Haptics.semantic(SemanticHaptic)`: name the UI event (`confirm`,
   `reject`, `toggleOn`, `toggleOff`, `gestureStart`, `gestureEnd`,
@@ -16,8 +20,9 @@
   natively when the vibrator supports every primitive in the composition,
   otherwise approximated as a whole with intensity and sharpness events
   (Core Haptics on iOS, a waveform on Android).
-- `HapticCapabilities.supportedPrimitives`: the primitives the vibrator
-  renders natively. Optional constructor parameter, defaults to empty.
+- `HapticComposition.supportedPrimitives()`: the primitives the vibrator
+  renders natively (Android 11+; always empty on iOS). A new static query,
+  so `HapticCapabilities` itself is unchanged.
 - Example app: a "haptic fired: ..." indicator for every haptic sent to the
   platform, and an auto-playing showcase of all widgets. README GIFs are
   recorded from it.
@@ -30,9 +35,14 @@
   animating and calling its callbacks. Direct `Haptics`, `Vibration` and
   `HapticPattern` calls still throw as before.
 - `Vibration.vibrateWaveform` now rejects negative timings with an
-  `InvalidVibrationArgumentException` on every platform. Android already
-  failed natively; iOS used to pull every later event earlier, down to a
-  negative start time.
+  `InvalidVibrationArgumentException` on every platform. This is not a new
+  failure mode for cross-platform callers: on Android (API 26+, with a
+  vibrator) the same input already threw this exact exception, mapped from
+  the native `IllegalArgumentException`, so code calling it on both
+  platforms already had to handle it. iOS silently played a wrong pattern
+  instead (every later event pulled earlier, down to a negative start
+  time) and now matches Android. Like the method's other argument checks,
+  it runs before the call reaches the platform.
 - Shortened the pubspec description to fit pub.dev's 60-180 character limit.
 
 ### Changed

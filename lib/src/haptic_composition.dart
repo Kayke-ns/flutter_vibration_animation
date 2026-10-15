@@ -6,7 +6,7 @@ import 'method_channel.dart';
 ///
 /// On Android 11+ each value is a hardware-tuned
 /// `VibrationEffect.Composition` primitive, rendered by the vibrator itself
-/// when [HapticCapabilities.supportedPrimitives] lists it. Everywhere else
+/// when [HapticComposition.supportedPrimitives] lists it. Everywhere else
 /// (iOS, older Android, or a vibrator without that primitive) it is
 /// approximated with intensity and sharpness events, through Core Haptics on
 /// iOS and a waveform on Android.
@@ -89,6 +89,32 @@ class HapticComposition {
 
   /// Number of primitives queued so far.
   int get length => _steps.length;
+
+  /// The [HapticPrimitive]s this device's vibrator renders natively.
+  ///
+  /// * Android - checked with `Vibrator.arePrimitivesSupported` on API 30+
+  ///   (`lowTick`, `thud` and `spin` need API 31). Empty on older versions.
+  /// * iOS - always empty: compositions are approximated with Core Haptics.
+  ///
+  /// [play] works either way. This tells you whether a composition will
+  /// feel native or approximated, for example to pick a different effect
+  /// on devices that would only approximate it. Like
+  /// `HapticCapabilities.query()`, it is a query, so it still reaches the
+  /// platform while `HapticSettings.enabled` is false.
+  static Future<Set<HapticPrimitive>> supportedPrimitives() async {
+    final raw = await HapticKitChannel.invoke<Map<Object?, Object?>>(
+      'capabilities.query',
+      null,
+      false,
+    );
+    final reported = raw?['supportedPrimitives'];
+    if (reported is! List<Object?>) return const {};
+    final names = reported.whereType<String>().toSet();
+    return {
+      for (final primitive in HapticPrimitive.values)
+        if (names.contains(primitive.name)) primitive,
+    };
+  }
 
   /// Send the composition to the native side and play it.
   ///
