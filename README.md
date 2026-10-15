@@ -71,7 +71,7 @@ Full hosted documentation lives on the Codigee open-source site:
 
 ```yaml
 dependencies:
-  haptic_kit: ^1.0.0
+  haptic_kit: ^2.2.1
 ```
 
 ### Android
@@ -426,6 +426,12 @@ All public APIs throw subclasses of `VibrationException`:
 | `InvalidVibrationArgumentException` | A parameter is out of range (negative duration, amplitude > 255, mismatched lists, …) |
 | `UnsupportedHapticException` | The device cannot render the requested capability |
 | `PlatformVibrationException` | The native side returned an error or the plugin is not registered |
+
+The animated widgets are the exception: their haptics are decorative, so they
+fire them in the background and absorb any `VibrationException`. On a device
+or platform that cannot play haptics (web, desktop, no vibrator) the widgets
+still animate and call their callbacks, just without the buzz, instead of
+raising an uncaught async error on every tap.
 
 ## Example app
 

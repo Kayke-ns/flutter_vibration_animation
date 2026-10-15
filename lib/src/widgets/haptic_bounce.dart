@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../haptic_feedback.dart';
+import 'widget_haptics.dart';
 
 /// Tactile press-down with elastic bounce-back, optionally synchronised with
 /// haptic feedback.
@@ -32,6 +33,10 @@ import '../haptic_feedback.dart';
 /// )
 /// ```
 class HapticBounce extends StatefulWidget {
+  /// Creates a bouncing tap wrapper around [child].
+  ///
+  /// [pressedScale] must be in `(0, 1)` and [overshootScale] must be at
+  /// least `1.0`.
   const HapticBounce({
     super.key,
     required this.child,
@@ -187,13 +192,13 @@ class _HapticBounceState extends State<HapticBounce>
         widget.bounceOnRelease ? _kBounceShrunkValue : _kSymmetricShrunkValue;
     _controller.animateTo(target, duration: widget.pressDuration);
     if (widget.haptics) {
-      Haptics.impact(HapticImpactStyle.light);
+      playWidgetHaptic(Haptics.impact(HapticImpactStyle.light));
     }
   }
 
   Future<void> _up(TapUpDetails _) async {
     if (widget.haptics) {
-      Haptics.impact(HapticImpactStyle.medium);
+      playWidgetHaptic(Haptics.impact(HapticImpactStyle.medium));
     }
     await _controller.animateTo(1, duration: widget.releaseDuration);
   }

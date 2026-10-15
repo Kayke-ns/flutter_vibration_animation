@@ -1,3 +1,24 @@
+## 2.2.1
+
+### Fixed
+- Animated widgets no longer raise an uncaught async error on every tap when
+  haptics cannot play. Their haptics are decorative, so a
+  `VibrationException` (no plugin on web or desktop, a native failure, an
+  unmocked channel in widget tests) is now absorbed and the widget keeps
+  animating and calling its callbacks. Direct `Haptics`, `Vibration` and
+  `HapticPattern` calls still throw as before.
+- `Vibration.vibrateWaveform` now rejects negative timings with an
+  `InvalidVibrationArgumentException` on every platform. Android already
+  failed natively; iOS used to pull every later event earlier, down to a
+  negative start time.
+- Shortened the pubspec description to fit pub.dev's 60-180 character limit.
+
+### Changed
+- Documented every public constructor and field, including `HapticBounce`,
+  `HapticPulse`, `HapticCapabilities`, `HapticEvent` and `HapticEvent.toMap`.
+- Synced the podspec version with the package version and updated the
+  README install snippet to `^2.2.1`.
+
 ## 2.2.0
 
 - Added `HapticSettings`, an app-wide switch for every haptic in the package.

@@ -8,6 +8,20 @@ import 'method_channel.dart';
 /// the event is rendered as a segment of a `VibrationEffect.createWaveform`,
 /// where [intensity] is mapped to amplitude.
 class HapticEvent {
+  /// Creates an event with [intensity] and [sharpness] in `[0, 1]`.
+  ///
+  /// Leave [duration] at zero for a transient tap, or set it for a
+  /// continuous event. [relativeTime] is the offset from the start of the
+  /// pattern.
+  ///
+  /// ```dart
+  /// const HapticEvent(
+  ///   intensity: 0.8,
+  ///   sharpness: 0.4,
+  ///   duration: Duration(milliseconds: 120),
+  ///   relativeTime: Duration(milliseconds: 200),
+  /// )
+  /// ```
   const HapticEvent({
     required this.intensity,
     required this.sharpness,
@@ -36,6 +50,8 @@ class HapticEvent {
   /// Offset from pattern start at which this event begins.
   final Duration relativeTime;
 
+  /// Serialises the event into the map sent over the platform channel:
+  /// `intensity`, `sharpness`, `durationMs` and `relativeTimeMs`.
   Map<String, dynamic> toMap() => {
         'intensity': intensity,
         'sharpness': sharpness,

@@ -56,6 +56,10 @@ class Vibration {
   ///
   /// On iOS without Core Haptics support the call falls back to a sequence
   /// of system vibrations approximating [timings].
+  ///
+  /// Throws [InvalidVibrationArgumentException] when [timings] is empty or
+  /// holds a negative duration, when [amplitudes] does not match [timings]
+  /// or leaves `[0, 255]`, or when [repeat] is out of range.
   static Future<void> vibrateWaveform({
     required List<Duration> timings,
     List<int>? amplitudes,
@@ -64,6 +68,11 @@ class Vibration {
     if (timings.isEmpty) {
       throw const InvalidVibrationArgumentException(
         'timings must not be empty',
+      );
+    }
+    if (timings.any((d) => d.isNegative)) {
+      throw const InvalidVibrationArgumentException(
+        'timings must be >= 0 ms',
       );
     }
     if (amplitudes != null && amplitudes.length != timings.length) {

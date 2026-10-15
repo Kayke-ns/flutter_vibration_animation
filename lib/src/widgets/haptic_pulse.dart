@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../haptic_feedback.dart';
+import 'widget_haptics.dart';
 
 /// Wraps a child with a looping "breathing" scale pulse, firing a haptic tap
 /// on every beat. The attention-getter counterpart to the one-shot
@@ -34,6 +35,10 @@ import '../haptic_feedback.dart';
 /// with the default (infinite) [pulseCount] must drive the clock with
 /// `tester.pump(duration)` rather than `tester.pumpAndSettle()`.
 class HapticPulse extends StatefulWidget {
+  /// Creates a looping pulse around [child].
+  ///
+  /// [minScale] and [maxScale] must be positive, and [pulseCount] must be
+  /// null (loop forever) or greater than zero.
   const HapticPulse({
     super.key,
     required this.child,
@@ -162,7 +167,7 @@ class HapticPulseState extends State<HapticPulse>
   Future<void> _runCycle() async {
     if (!_pulsing) return;
     if (widget.haptics) {
-      Haptics.impact(widget.impactStyle);
+      playWidgetHaptic(Haptics.impact(widget.impactStyle));
     }
     await _controller.forward(from: 0);
     if (!mounted || !_pulsing) return;

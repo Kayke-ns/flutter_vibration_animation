@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../haptic_feedback.dart';
+import 'widget_haptics.dart';
 
 /// Star rating row that fills with a cascading animation when the user
 /// taps a star. Each star fill triggers a haptic tick, so the user feels
@@ -16,6 +17,7 @@ import '../haptic_feedback.dart';
 /// )
 /// ```
 class HapticRating extends StatefulWidget {
+  /// Creates a star rating row showing [value] out of [starCount] stars.
   const HapticRating({
     super.key,
     required this.value,
@@ -33,11 +35,23 @@ class HapticRating extends StatefulWidget {
 
   /// Current rating, in `0..starCount`.
   final int value;
+
+  /// Called with the new rating (`1..starCount`) when a star is tapped.
   final ValueChanged<int> onChanged;
+
+  /// Number of stars to render. Must be greater than zero. Defaults to `5`.
   final int starCount;
+
+  /// Size of each star icon in logical pixels. Defaults to `36`.
   final double size;
+
+  /// Horizontal gap between stars in logical pixels. Defaults to `6`.
   final double spacing;
+
+  /// Colour of filled stars. Defaults to [Colors.amber].
   final Color activeColor;
+
+  /// Colour of empty stars. Defaults to a dark grey.
   final Color inactiveColor;
 
   /// Time between each star "lighting up" during the cascade.
@@ -88,7 +102,7 @@ class _HapticRatingState extends State<HapticRating> {
       }
       i++;
       setState(() => _displayValue = i);
-      Haptics.selection();
+      playWidgetHaptic(Haptics.selection());
     });
   }
 

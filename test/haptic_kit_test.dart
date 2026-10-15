@@ -234,6 +234,30 @@ void main() {
       );
     });
 
+    test('vibrateWaveform rejects negative timing', () {
+      expect(
+        () => Vibration.vibrateWaveform(
+          timings: const [
+            Duration.zero,
+            Duration(milliseconds: -10),
+          ],
+        ),
+        throwsA(isA<InvalidVibrationArgumentException>()),
+      );
+      expect(calls, isEmpty);
+    });
+
+    test('vibrateWaveform accepts zero-length timings', () async {
+      await Vibration.vibrateWaveform(
+        timings: const [Duration.zero, Duration(milliseconds: 40)],
+      );
+      expect(calls.single.method, 'vibration.waveform');
+      expect(calls.single.arguments, {
+        'timingsMs': [0, 40],
+        'repeat': -1,
+      });
+    });
+
     test('vibrateWaveform rejects negative amplitude', () {
       expect(
         () => Vibration.vibrateWaveform(

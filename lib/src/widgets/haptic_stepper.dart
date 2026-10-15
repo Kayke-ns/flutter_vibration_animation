@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../haptic_feedback.dart';
 import 'haptic_bounce.dart';
+import 'widget_haptics.dart';
 
 /// Numeric stepper with bouncing −/+ buttons and a number that slides up
 /// (on increment) or down (on decrement).
@@ -18,6 +19,9 @@ import 'haptic_bounce.dart';
 /// )
 /// ```
 class HapticStepper extends StatelessWidget {
+  /// Creates a stepper showing [value] within `[min, max]`.
+  ///
+  /// [step] must be greater than zero and [min] must be less than [max].
   const HapticStepper({
     super.key,
     required this.value,
@@ -28,16 +32,25 @@ class HapticStepper extends StatelessWidget {
   })  : assert(step > 0, 'step must be > 0'),
         assert(min < max, 'min must be < max');
 
+  /// Current value shown between the buttons.
   final int value;
+
+  /// Called with the new value, already clamped to `[min, max]`.
   final ValueChanged<int> onChanged;
+
+  /// Lowest allowed value. Defaults to `0`.
   final int min;
+
+  /// Highest allowed value. Defaults to `99`.
   final int max;
+
+  /// Amount added or subtracted by each button press. Defaults to `1`.
   final int step;
 
   void _bump(int delta) {
     final next = (value + delta).clamp(min, max);
     if (next == value) {
-      Haptics.impact(HapticImpactStyle.heavy); // boundary
+      playWidgetHaptic(Haptics.impact(HapticImpactStyle.heavy)); // boundary
       return;
     }
     onChanged(next);
