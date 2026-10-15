@@ -70,6 +70,31 @@ internal final class HapticFeedbackHandler {
         selectionGenerator.selectionChanged()
     }
 
+    /// Maps a Dart `SemanticHaptic` name to the closest UIKit generator.
+    /// Keep in sync with the per-value docs in `semantic_haptic.dart`.
+    func semantic(type: String) throws {
+        switch type {
+        case "confirm":
+            notification(style: "success")
+        case "reject":
+            notification(style: "error")
+        case "toggleOn", "dragStart":
+            impact(style: "medium")
+        case "toggleOff", "gestureStart":
+            impact(style: "light")
+        case "gestureEnd", "gestureThresholdDeactivate":
+            impact(style: "soft")
+        case "gestureThresholdActivate":
+            impact(style: "rigid")
+        case "segmentTick", "segmentFrequentTick":
+            selection()
+        case "longPress":
+            impact(style: "heavy")
+        default:
+            throw PluginError.invalidArgument("Unknown semantic haptic: \(type)")
+        }
+    }
+
     func prepare() {
         selectionGenerator.prepare()
         notificationGenerator.prepare()

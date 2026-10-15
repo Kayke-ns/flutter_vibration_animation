@@ -163,6 +163,9 @@ internal final class CoreHapticsHandler {
             "supportsCustomPatterns": supportsHaptics,
             "supportsPredefinedEffects": false,
             "supportsImpactFeedback": true,
+            // Composition primitives are an Android API; iOS approximates
+            // them with Core Haptics events instead.
+            "supportedPrimitives": [String](),
         ]
     }
 

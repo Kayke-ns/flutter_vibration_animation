@@ -111,6 +111,45 @@ internal class VibrationManager(context: Context) {
         waveform(timings, amplitudes, -1)
     }
 
+    /**
+     * Plays a Dart `HapticComposition`. The native composition is used only
+     * when the vibrator supports every primitive in it; otherwise the whole
+     * composition plays as [fallbackEvents] (built on the Dart side), so a
+     * composition never comes out half native and half approximated.
+     */
+    fun playComposition(primitives: List<Map<String, Any?>>, fallbackEvents: List<Map<String, Any?>>) {
+        val v = vibrator ?: return
+        if (!hasVibrator) return
+        val ids = primitives.map { step ->
+            val name = step["primitive"] as? String
+            val primitive = PRIMITIVES[name]
+                ?: throw IllegalArgumentException("Unknown haptic primitive: $name")
+            primitive.takeIf { Build.VERSION.SDK_INT >= it.minSdk }?.id
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+            ids.none { it == null } &&
+            v.areAllPrimitivesSupported(*ids.filterNotNull().toIntArray())
+        ) {
+            val composition = VibrationEffect.startComposition()
+            primitives.forEachIndexed { i, step ->
+                val scale = (step["scale"] as? Number)?.toFloat() ?: 1f
+                val delayMs = (step["delayMs"] as? Number)?.toInt() ?: 0
+                composition.addPrimitive(ids[i]!!, scale.coerceIn(0f, 1f), delayMs.coerceAtLeast(0))
+            }
+            v.vibrate(composition.compose())
+            return
+        }
+        playPattern(fallbackEvents)
+    }
+
+    private fun supportedPrimitives(): List<String> {
+        val v = vibrator ?: return emptyList()
+        if (!hasVibrator || Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return emptyList()
+        val available = PRIMITIVES.filterValues { Build.VERSION.SDK_INT >= it.minSdk }
+        val supported = v.arePrimitivesSupported(*available.values.map { it.id }.toIntArray())
+        return available.keys.filterIndexed { i, _ -> supported[i] }
+    }
+
     fun cancel() {
         vibrator?.cancel()
     }
@@ -121,5 +160,22 @@ internal class VibrationManager(context: Context) {
         "supportsCustomPatterns" to (hasVibrator && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O),
         "supportsPredefinedEffects" to (hasVibrator && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q),
         "supportsImpactFeedback" to hasVibrator,
+        "supportedPrimitives" to supportedPrimitives(),
     )
+
+    private class Primitive(val id: Int, val minSdk: Int)
+
+    private companion object {
+        // Keys are the Dart `HapticPrimitive` enum names.
+        val PRIMITIVES: Map<String, Primitive> = linkedMapOf(
+            "click" to Primitive(VibrationEffect.Composition.PRIMITIVE_CLICK, Build.VERSION_CODES.R),
+            "tick" to Primitive(VibrationEffect.Composition.PRIMITIVE_TICK, Build.VERSION_CODES.R),
+            "lowTick" to Primitive(VibrationEffect.Composition.PRIMITIVE_LOW_TICK, Build.VERSION_CODES.S),
+            "quickRise" to Primitive(VibrationEffect.Composition.PRIMITIVE_QUICK_RISE, Build.VERSION_CODES.R),
+            "slowRise" to Primitive(VibrationEffect.Composition.PRIMITIVE_SLOW_RISE, Build.VERSION_CODES.R),
+            "quickFall" to Primitive(VibrationEffect.Composition.PRIMITIVE_QUICK_FALL, Build.VERSION_CODES.R),
+            "thud" to Primitive(VibrationEffect.Composition.PRIMITIVE_THUD, Build.VERSION_CODES.S),
+            "spin" to Primitive(VibrationEffect.Composition.PRIMITIVE_SPIN, Build.VERSION_CODES.S),
+        )
+    }
 }

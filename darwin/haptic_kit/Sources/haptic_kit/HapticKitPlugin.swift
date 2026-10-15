@@ -31,6 +31,11 @@ public class HapticKitPlugin: NSObject, FlutterPlugin {
                 hapticHandler.selection()
                 result(nil)
 
+            case "haptic.semantic":
+                let type = try requireString(call, "type")
+                try hapticHandler.semantic(type: type)
+                result(nil)
+
             case "haptic.prepare":
                 hapticHandler.prepare()
                 // iOS actually pre-warmed the generators — let Dart know.
@@ -72,6 +77,17 @@ public class HapticKitPlugin: NSObject, FlutterPlugin {
                       let events = args["events"] as? [[String: Any]]
                 else {
                     throw PluginError.invalidArgument("events missing")
+                }
+                try coreHaptics.playPattern(events: events, fallback: hapticHandler)
+                result(nil)
+
+            case "composition.play":
+                // iOS has no composition primitives, so the Dart side always
+                // sends the composition pre-laid-out as Core Haptics events.
+                guard let args = call.arguments as? [String: Any],
+                      let events = args["fallbackEvents"] as? [[String: Any]]
+                else {
+                    throw PluginError.invalidArgument("fallbackEvents missing")
                 }
                 try coreHaptics.playPattern(events: events, fallback: hapticHandler)
                 result(nil)
