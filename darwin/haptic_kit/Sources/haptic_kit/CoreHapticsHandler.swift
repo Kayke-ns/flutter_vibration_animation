@@ -8,6 +8,9 @@ internal final class CoreHapticsHandler {
 
     private var engine: CHHapticEngine?
     private var player: CHHapticAdvancedPatternPlayer?
+    /// Set by `stoppedHandler`: iOS stops the engine when the app is suspended,
+    /// on audio-session interrupts and on idle timeout. The next play restarts it.
+    private var engineNeedsStart = false
 
     private let supportsHaptics: Bool = {
         if #available(iOS 13.0, *) {
@@ -18,12 +21,21 @@ internal final class CoreHapticsHandler {
 
     @available(iOS 13.0, *)
     private func ensureEngine() throws -> CHHapticEngine {
-        if let existing = engine { return existing }
+        if let existing = engine {
+            if engineNeedsStart {
+                try existing.start()
+                engineNeedsStart = false
+            }
+            return existing
+        }
         let new = try CHHapticEngine()
         new.resetHandler = { [weak self] in
+            self?.engineNeedsStart = false
             try? self?.engine?.start()
         }
-        new.stoppedHandler = { _ in /* ignore — restart on next call */ }
+        new.stoppedHandler = { [weak self] _ in
+            self?.engineNeedsStart = true
+        }
         try new.start()
         engine = new
         return new

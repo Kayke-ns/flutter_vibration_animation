@@ -1,3 +1,14 @@
+## Unreleased
+
+### Fixed
+- iOS only: Core Haptics patterns, waveforms and one-shots no longer go
+  silent after the app has been in the background. iOS stops the shared
+  `CHHapticEngine` when the app is suspended (and on audio-session
+  interrupts and idle timeouts), and the handler kept reusing the stopped
+  instance, so every later `start(atTime:)` failed inside the swallowed
+  `do/catch`. The stop is now tracked in `stoppedHandler` and the engine is
+  started again before the next play. No API change.
+
 ## 2.3.0
 
 Fully backward compatible: every change is additive or a bug fix. No
